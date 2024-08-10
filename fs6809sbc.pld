@@ -1,0 +1,74 @@
+Name     fs6809sbc;
+PartNo   01 ;
+Date     09/06/2024;
+Revision 11;
+Designer Fabio Sturman;
+Company  Elekras;
+Assembly fs6809sbc;
+Location U8;
+Device   g22v10;
+
+/*
+	ADDRESS DECODER
+	PAGED MEMORY DECODER
+	FOR FS6809SBC
+	(c) 2024 by Fabio Sturman  fabio.sturman@gmail.com
+	Version 1.0 - 08.06.2024
+	Version 1.1 - 09.07.2024
+
+   	ram:    0000/60KiB
+	page:   E000/4KibB
+   	ide:    F000/128
+   	duart:  F080/128
+   	pmu:    F100/128   paged memory unit latch
+	free:   F180/128   ram
+        ram1:   F200/512   ram
+	rom:    F400/3KiB
+*/
+
+/**************** INPUT PINS *********************/
+PIN  1 = A8;
+PIN  2 = A9;
+PIN  3 = A10;
+PIN  4 = A11;
+PIN  5 = A12;
+PIN  6 = A13;
+PIN  7 = A14;
+PIN  8 = A15;
+PIN  9 = P0;
+PIN 10 = P1;
+PIN 11 = P2;
+PIN 13 = E;
+PIN 14 = A7;
+/**************** OUTPUT PINS *********************/
+PIN 15 = AR13;
+PIN 16 = AR14;
+PIN 17 = AR15;
+PIN 18 = AR16;
+PIN 19 = !IDE;
+PIN 20 = !DUART;
+PIN 21 = PMU;
+PIN 22 = !ROM;
+PIN 23 = !RAM;
+
+/* I/O F000..F300 */
+TOC = A15 & A14 & A13 & A12 & !A11 & !A10;
+IDE =   E & TOC & !A9 & !A8 & !A7;
+DUART = E & TOC & !A9 & !A8 &  A7;
+PMU =   E & TOC & !A9 & A8 &  !A7;
+FREE =  E & TOC & !A9 & A8 &   A7;
+RAM1 =  E & TOC &  A9;
+
+/* RAM 0000 .. F000 */
+RAM = E & (!A15 # A15 & !A14 # A15 & A14 & (!A13 # A13 & !A12)) # FREE # RAM1;
+
+/* ROM F400 .. FFFF */
+ROM = E & (A15 & A14 & A13 & A12 & ( A11 # !A11 & A10));
+
+/* Paged memory managment - S=page addr=A/B000 page len=8k */
+S = A15 & !A14 & A13;
+AR16 = S;
+AR15 = !S & A15 # S & P2;
+AR14 = !S & A14 # S & P1;
+AR13 = !S & A13 # S & P0;
+
